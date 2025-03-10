@@ -16,7 +16,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
-import { FONT_SIZE, BORDER_RADIUS } from "../constants/theme";
+import { FONT_SIZE, BORDER_RADIUS, SPACING } from "../constants/theme";
 import { STRINGS } from "../constants/strings";
 import { useUserStore, useTheme } from "../store";
 import { Order, OrderStatus, RootStackParamList } from "../types";
@@ -24,7 +24,7 @@ import { MOCK_ORDERS } from "../constants/mockData";
 
 const { width } = Dimensions.get("window");
 
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type NavigationProp = StackNavigationProp<RootStackParamList, "OrderHistory">;
 
 const OrderHistoryScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -542,7 +542,6 @@ const styles = StyleSheet.create({
   },
   moreItems: {
     fontSize: FONT_SIZE.sm,
-    color: useTheme().colors.neutral[600],
   },
   emptyContainer: {
     flex: 1,

@@ -12,8 +12,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation";
+import { RootStackParamList } from "../types";
 import { STRINGS } from "../constants/strings";
 import { MOCK_ORDERS } from "../constants/mockData";
 import { Order, OrderStatus } from "../types";
@@ -23,10 +24,11 @@ import { Card } from "../components/ui/Card";
 import Button from "../components/ui/Button";
 
 type OrderDetailsRouteProp = RouteProp<RootStackParamList, "OrderDetails">;
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const OrderDetailsScreen = () => {
   const route = useRoute<OrderDetailsRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { colors } = useTheme();
   const { orderId } = route.params;
   const [order, setOrder] = useState<Order | null>(null);
