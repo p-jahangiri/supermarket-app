@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,19 +11,30 @@ import {
   StatusBar,
   ActivityIndicator,
   I18nManager,
+  Animated,
+  Easing,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { ProductCard, CategoryCard } from "../components";
-import { FONT_SIZE, SPACING } from "../constants/theme";
+import PromoBanner from "../components/PromoBanner";
+import FeaturedCarousel from "../components/FeaturedCarousel";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "../constants/theme";
 import { STRINGS } from "../constants/strings";
-import { useProductStore, useTheme } from "../store";
+import { useProductStore, useTheme, useCartStore } from "../store";
+import { RootStackParamList } from "../types";
 
 // تنظیم راست به چپ بودن اپلیکیشن
 I18nManager.forceRTL(true);
 
+const { width } = Dimensions.get("window");
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
 const HomeScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const {
     products,
     categories,
@@ -34,32 +45,65 @@ const HomeScreen = () => {
     fetchCategories,
     fetchFeaturedProducts,
   } = useProductStore();
+  const { cart } = useCartStore();
+  const { colors, isDark } = useTheme();
 
-  const { colors } = useTheme();
+  // Animated values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
     // Fetch data when component mounts
     fetchProducts();
     fetchCategories();
     fetchFeaturedProducts();
+
+    // Start entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+    ]).start();
   }, []);
 
   const handleSearch = () => {
-    // @ts-ignore - We'll fix the navigation types later
     navigation.navigate("Search");
   };
 
   const handleSeeAllCategories = () => {
-    // @ts-ignore - We'll fix the navigation types later
     navigation.navigate("Categories");
   };
 
   const handleSeeAllProducts = () => {
-    // We can navigate to a specific category or all products
-    // For now, let's just go to the first category
     if (categories.length > 0) {
-      // @ts-ignore - We'll fix the navigation types later
-      navigation.navigate("CategoryProducts", { categoryId: categories[0].id });
+      navigation.navigate("CategoryProducts", {
+        categoryId: categories[0].id,
+        categoryName: categories[0].name,
+      });
+    }
+  };
+
+  const handleBannerPress = () => {
+    if (featuredProducts.length > 0) {
+      navigation.navigate("ProductDetails", {
+        productId: featuredProducts[0].id,
+      });
     }
   };
 
@@ -72,7 +116,7 @@ const HomeScreen = () => {
         ]}
       >
         <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-        <Text style={[styles.loadingText, { color: colors.neutral[700] }]}>
+        <Text style={[styles.loadingText, { color: colors.text }]}>
           {STRINGS.LOADING}
         </Text>
       </View>
@@ -108,23 +152,35 @@ const HomeScreen = () => {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.background }]}>
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.background,
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <View style={styles.headerContent}>
           <View>
             <Text style={[styles.greeting, { color: colors.neutral[600] }]}>
               {STRINGS.WELCOME}
             </Text>
-            <Text style={[styles.appName, { color: colors.neutral[900] }]}>
+            <Text style={[styles.appName, { color: colors.text }]}>
               {STRINGS.APP_NAME}
             </Text>
           </View>
           <TouchableOpacity
             style={[
               styles.cartButton,
-              { backgroundColor: colors.neutral[100] },
+              { backgroundColor: colors.primary.DEFAULT + "20" },
             ]}
             onPress={() => navigation.navigate("Cart")}
           >
@@ -133,6 +189,11 @@ const HomeScreen = () => {
               size={24}
               color={colors.primary.DEFAULT}
             />
+            {cart.items.length > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cart.items.length}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -152,16 +213,36 @@ const HomeScreen = () => {
             {STRINGS.SEARCH_PLACEHOLDER}
           </Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Featured Carousel */}
+        <Animated.View
+          style={[
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
+          <FeaturedCarousel products={featuredProducts} />
+        </Animated.View>
+
         {/* Categories Section */}
-        <View style={styles.sectionContainer}>
+        <Animated.View
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.neutral[900] }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {STRINGS.CATEGORIES}
             </Text>
             <TouchableOpacity onPress={handleSeeAllCategories}>
@@ -178,46 +259,49 @@ const HomeScreen = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <CategoryCard category={item} size="small" />
+            renderItem={({ item, index }) => (
+              <Animated.View
+                style={{
+                  opacity: fadeAnim,
+                  transform: [
+                    {
+                      translateY: slideAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 50 + index * 10],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <CategoryCard category={item} size="medium" />
+              </Animated.View>
             )}
             contentContainerStyle={styles.categoriesList}
           />
-        </View>
+        </Animated.View>
 
-        {/* Featured Products Section */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.neutral[900] }]}>
-              {STRINGS.FEATURED_PRODUCTS}
-            </Text>
-            <TouchableOpacity onPress={handleSeeAllProducts}>
-              <Text
-                style={[styles.seeAllText, { color: colors.primary.DEFAULT }]}
-              >
-                {STRINGS.SEE_ALL}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={featuredProducts}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.productCardContainer}>
-                <ProductCard product={item} />
-              </View>
-            )}
-            contentContainerStyle={styles.productsList}
-          />
-        </View>
+        {/* Special Offers Banner */}
+        <PromoBanner
+          title={STRINGS.SPECIAL_OFFERS}
+          subtitle={STRINGS.SPECIAL_OFFERS_SUBTITLE}
+          buttonText={STRINGS.SHOP_NOW}
+          imageUrl="https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?q=80&w=1472&auto=format&fit=crop"
+          onPress={handleBannerPress}
+          style={{ marginHorizontal: SPACING.md, marginBottom: SPACING.lg }}
+        />
 
         {/* New Arrivals Section */}
-        <View style={styles.sectionContainer}>
+        <Animated.View
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.neutral[900] }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {STRINGS.NEW_ARRIVALS}
             </Text>
             <TouchableOpacity onPress={handleSeeAllProducts}>
@@ -230,44 +314,33 @@ const HomeScreen = () => {
           </View>
 
           <FlatList
-            data={products.slice(0, 4)}
+            data={products.slice(0, 6)}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.productCardContainer}>
+            renderItem={({ item, index }) => (
+              <Animated.View
+                style={[
+                  styles.productCardContainer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [
+                      {
+                        translateY: slideAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 30 + index * 10],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
                 <ProductCard product={item} />
-              </View>
+              </Animated.View>
             )}
             contentContainerStyle={styles.productsList}
           />
-        </View>
-
-        {/* Special Offers Banner */}
-        <View style={styles.bannerContainer}>
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?q=80&w=1472&auto=format&fit=crop",
-            }}
-            style={styles.bannerImage}
-            resizeMode="cover"
-          />
-          <View style={styles.bannerOverlay}>
-            <Text style={styles.bannerTitle}>{STRINGS.SPECIAL_OFFERS}</Text>
-            <Text style={styles.bannerSubtitle}>
-              {STRINGS.SPECIAL_OFFERS_SUBTITLE}
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.bannerButton,
-                { backgroundColor: colors.primary.DEFAULT },
-              ]}
-              onPress={handleSeeAllProducts}
-            >
-              <Text style={styles.bannerButtonText}>{STRINGS.SHOP_NOW}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -283,78 +356,94 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: SPACING.md,
     fontSize: FONT_SIZE.md,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: SPACING.lg,
   },
   errorText: {
     fontSize: FONT_SIZE.md,
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
   retryButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
   },
   retryButtonText: {
     fontSize: FONT_SIZE.md,
     fontWeight: "600",
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.md,
   },
   headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.sm,
   },
   greeting: {
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.sm,
+    marginBottom: 4,
   },
   appName: {
-    fontSize: FONT_SIZE["2xl"],
-    fontWeight: "bold",
+    fontSize: FONT_SIZE.xl,
+    fontWeight: "700",
   },
   cartButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "red",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cartBadgeText: {
+    color: "white",
+    fontSize: FONT_SIZE.xs,
+    fontWeight: "bold",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
   },
   searchPlaceholder: {
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
     fontSize: FONT_SIZE.md,
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: SPACING.xl,
   },
   sectionContainer: {
-    marginTop: 24,
+    marginBottom: SPACING.lg,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   sectionTitle: {
     fontSize: FONT_SIZE.lg,
@@ -365,52 +454,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   categoriesList: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.md,
   },
   productsList: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.md,
   },
   productCardContainer: {
-    marginHorizontal: 8,
-  },
-  bannerContainer: {
-    marginTop: 24,
-    marginHorizontal: 16,
-    height: 180,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  bannerImage: {
-    width: "100%",
-    height: "100%",
-  },
-  bannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  bannerTitle: {
-    fontSize: FONT_SIZE["2xl"],
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 8,
-  },
-  bannerSubtitle: {
-    fontSize: FONT_SIZE.md,
-    color: "#F3F4F6",
-    marginBottom: 16,
-  },
-  bannerButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  bannerButtonText: {
-    color: "#FFFFFF",
-    fontSize: FONT_SIZE.sm,
-    fontWeight: "600",
+    marginRight: SPACING.sm,
   },
 });
 

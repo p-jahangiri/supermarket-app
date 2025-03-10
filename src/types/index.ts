@@ -114,7 +114,7 @@ export type RootStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   Categories: undefined;
-  CategoryProducts: { categoryId: string };
+  CategoryProducts: { categoryId: string; categoryName: string };
   Search: undefined;
   About: undefined;
   Contact: undefined;

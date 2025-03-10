@@ -1,18 +1,23 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
   TouchableOpacity,
+  Text,
+  StyleSheet,
+  Image,
   ViewStyle,
   ImageStyle,
   TextStyle,
+  Animated,
+  View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Category } from "../types";
-import { FONT_SIZE, BORDER_RADIUS } from "../constants/theme";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { LinearGradient } from "expo-linear-gradient";
+import { BORDER_RADIUS, FONT_SIZE } from "../constants/theme";
 import { useTheme } from "../store";
+import { Category, RootStackParamList } from "../types";
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface CategoryCardProps {
   category: Category;
@@ -29,125 +34,123 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   textStyle,
   size = "medium",
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { colors } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
-    // @ts-ignore - We'll fix the navigation types later
-    navigation.navigate("CategoryProducts", { categoryId: category.id });
+    navigation.navigate("CategoryProducts", {
+      categoryId: category.id,
+      categoryName: category.name,
+    });
   };
 
-  // Determine dimensions based on size
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      friction: 8,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 8,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const getDimensions = () => {
     switch (size) {
       case "small":
-        return { width: 100, height: 100 };
-      case "medium":
-        return { width: 140, height: 140 };
+        return { width: 80, height: 80 };
       case "large":
-        return { width: 180, height: 180 };
+        return { width: 160, height: 160 };
+      case "medium":
       default:
-        return { width: 140, height: 140 };
+        return { width: 120, height: 120 };
     }
   };
 
-  // Determine font size based on size
   const getFontSize = () => {
     switch (size) {
       case "small":
-        return FONT_SIZE.sm;
-      case "medium":
-        return FONT_SIZE.md;
+        return FONT_SIZE.xs;
       case "large":
         return FONT_SIZE.lg;
+      case "medium":
       default:
-        return FONT_SIZE.md;
+        return FONT_SIZE.sm;
     }
   };
 
   const dimensions = getDimensions();
-  const fontSize = getFontSize();
 
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        {
-          width: dimensions.width,
-          height: dimensions.height,
-          ...SHADOWS.small,
-        },
-        style,
-      ]}
+      activeOpacity={0.9}
       onPress={handlePress}
-      activeOpacity={0.8}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[styles.container, style]}
     >
-      <Image
-        source={{ uri: category.image }}
-        style={[
-          styles.image,
-          {
-            width: dimensions.width,
-            height: dimensions.height,
-          },
-          imageStyle,
-        ]}
-        resizeMode="cover"
-      />
-      <View style={styles.overlay}>
-        <Text
-          style={[
-            styles.name,
-            {
-              fontSize,
-            },
-            textStyle,
-          ]}
-          numberOfLines={2}
+      <Animated.View
+        style={[styles.card, dimensions, { transform: [{ scale: scaleAnim }] }]}
+      >
+        <Image
+          source={{ uri: category.image }}
+          style={[styles.image, dimensions, imageStyle]}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)"]}
+          style={styles.gradient}
         >
-          {category.name}
-        </Text>
-      </View>
+          <Text
+            style={[styles.name, { fontSize: getFontSize() }, textStyle]}
+            numberOfLines={2}
+          >
+            {category.name}
+          </Text>
+        </LinearGradient>
+      </Animated.View>
     </TouchableOpacity>
   );
 };
 
-const SHADOWS = {
-  small: {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-};
-
 const styles = StyleSheet.create({
   container: {
+    marginHorizontal: 8,
+  },
+  card: {
     borderRadius: BORDER_RADIUS.md,
     overflow: "hidden",
-    margin: 8,
+    justifyContent: "flex-end",
   },
   image: {
     position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
+  gradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "50%",
+    justifyContent: "flex-end",
     alignItems: "center",
     padding: 8,
   },
   name: {
     color: "#FFFFFF",
-    fontWeight: "700",
+    fontWeight: "600",
     textAlign: "center",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
 });
 
