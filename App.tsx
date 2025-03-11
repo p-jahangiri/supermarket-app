@@ -8,7 +8,9 @@ export default function App() {
   const { isDark, colors } = useTheme();
 
   return (
-    <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaProvider
+      style={{ flex: 1, marginTop: 14, backgroundColor: colors.background }}
+    >
       <StatusBar
         style={isDark ? "light" : "dark"}
         backgroundColor={colors.background}
