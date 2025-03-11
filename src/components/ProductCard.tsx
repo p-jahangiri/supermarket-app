@@ -131,7 +131,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           ]}
         >
           <Image
-            source={{ uri: product.images[0] }}
+            source={require("../../assets/non.jpg")}
             style={styles.horizontalImage}
             resizeMode="cover"
           />
@@ -221,7 +221,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: product.images[0] }}
+            source={require("../../assets/gosh.jpg")}
             style={styles.image}
             resizeMode="cover"
           />

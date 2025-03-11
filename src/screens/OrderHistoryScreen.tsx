@@ -220,7 +220,7 @@ const OrderHistoryScreen = () => {
               ]}
             >
               <Image
-                source={{ uri: orderItem.product.images[0] }}
+                source={require("../../assets/non.jpg")}
                 style={styles.productImage}
                 resizeMode="cover"
               />

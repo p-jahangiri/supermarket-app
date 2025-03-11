@@ -74,7 +74,7 @@ const CartScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.cartItem}>
             <Image
-              source={{ uri: item.product.images[0] }}
+              source={require("../../assets/nosh.jpg")}
               style={styles.productImage}
               resizeMode="cover"
             />

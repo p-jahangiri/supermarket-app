@@ -50,7 +50,7 @@ const CategoriesScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.categoryContainer}>
-            <CategoryCard category={item} size="medium" />
+            <CategoryCard category={item} size="large" />
           </View>
         )}
         contentContainerStyle={styles.categoriesList}

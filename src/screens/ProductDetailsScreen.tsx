@@ -129,7 +129,7 @@ const ProductDetailsScreen = () => {
             {product.images.map((image, index) => (
               <Image
                 key={index}
-                source={{ uri: image }}
+                source={require("../../assets/gosh.jpg")}
                 style={styles.productImage}
                 resizeMode="cover"
               />

@@ -115,7 +115,7 @@ const PromoBanner: React.FC<PromoBannerProps> = ({
         style={styles.touchable}
       >
         <ImageBackground
-          source={{ uri: imageUrl }}
+          source={require("../../assets/non.jpg")}
           style={styles.image}
           imageStyle={{ borderRadius: BORDER_RADIUS.lg }}
         >

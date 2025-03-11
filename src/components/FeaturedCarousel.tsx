@@ -104,7 +104,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
           ]}
         >
           <ImageBackground
-            source={{ uri: item.images[0] }}
+            source={require("../../assets/hob.jpg")}
             style={styles.image}
             imageStyle={{ borderRadius: BORDER_RADIUS.lg }}
           >

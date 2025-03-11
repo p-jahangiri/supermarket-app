@@ -101,7 +101,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         style={[styles.card, dimensions, { transform: [{ scale: scaleAnim }] }]}
       >
         <Image
-          source={{ uri: category.image }}
+          source={require("../../assets/tan.jpg")}
           style={[styles.image, dimensions, imageStyle]}
           resizeMode="cover"
         />
@@ -124,6 +124,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 8,
+    marginBottom: 8,
   },
   card: {
     borderRadius: BORDER_RADIUS.md,
