@@ -9,7 +9,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider
-      style={{ flex: 1, marginTop: 14, backgroundColor: colors.background }}
+      style={{ flex: 1, marginTop: 20, backgroundColor: colors.background }}
     >
       <StatusBar
         style={isDark ? "light" : "dark"}

@@ -71,7 +71,13 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
 
     const translateX = scrollX.interpolate({
       inputRange,
-      outputRange: [ITEM_WIDTH * 0.1, 0, -ITEM_WIDTH * 0.1],
+      outputRange: [ITEM_WIDTH * 0.15, 0, -ITEM_WIDTH * 0.15],
+      extrapolate: "clamp",
+    });
+
+    const translateY = scrollX.interpolate({
+      inputRange,
+      outputRange: [20, 0, 20],
       extrapolate: "clamp",
     });
 
@@ -98,7 +104,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
           style={[
             styles.item,
             {
-              transform: [{ scale }, { translateX }],
+              transform: [{ scale }, { translateX }, { translateY }],
               opacity,
             },
           ]}

@@ -102,7 +102,7 @@ const ProductDetailsScreen = () => {
 
         <TouchableOpacity
           style={[styles.cartButton, { backgroundColor: colors.neutral[100] }]}
-          onPress={() => navigation.navigate("Cart")}
+          onPress={() => navigation.navigate("Cart" as never)}
         >
           <Ionicons
             name="cart-outline"

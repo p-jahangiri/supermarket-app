@@ -34,62 +34,57 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   ...initialState,
 
   fetchProducts: async () => {
-    set({ isLoading: true, error: null });
-
     try {
+      set({ isLoading: true, error: null });
       // In a real app, this would be an API call
       // For now, we'll use mock data
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      set({
+      set((state) => ({
+        ...state,
         products: MOCK_PRODUCTS,
-        isLoading: false,
-      });
+      }));
     } catch (error) {
-      set({
+      set((state) => ({
+        ...state,
         error: "Failed to fetch products. Please try again.",
-        isLoading: false,
-      });
+      }));
     }
   },
 
   fetchCategories: async () => {
-    set({ isLoading: true, error: null });
-
     try {
+      set((state) => ({ ...state, error: null }));
       // In a real app, this would be an API call
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      set({
+      set((state) => ({
+        ...state,
         categories: MOCK_CATEGORIES,
-        isLoading: false,
-      });
+      }));
     } catch (error) {
-      set({
+      set((state) => ({
+        ...state,
         error: "Failed to fetch categories. Please try again.",
-        isLoading: false,
-      });
+      }));
     }
   },
 
   fetchFeaturedProducts: async () => {
-    set({ isLoading: true, error: null });
-
     try {
+      set((state) => ({ ...state, error: null }));
       // In a real app, this would be an API call
       await new Promise((resolve) => setTimeout(resolve, 500));
-
       const featured = MOCK_PRODUCTS.filter((product) => product.featured);
-
-      set({
+      set((state) => ({
+        ...state,
         featuredProducts: featured,
-        isLoading: false,
-      });
+      }));
     } catch (error) {
-      set({
+      set((state) => ({
+        ...state,
         error: "Failed to fetch featured products. Please try again.",
-        isLoading: false,
-      });
+      }));
+    } finally {
+      set((state) => ({ ...state, isLoading: false }));
     }
   },
 

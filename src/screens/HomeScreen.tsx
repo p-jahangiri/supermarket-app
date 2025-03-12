@@ -52,34 +52,45 @@ const HomeScreen = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerHeight = useRef(new Animated.Value(120)).current;
 
   useEffect(() => {
-    // Fetch data when component mounts
-    fetchProducts();
-    fetchCategories();
-    fetchFeaturedProducts();
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchProducts(),
+          fetchCategories(),
+          fetchFeaturedProducts(),
+        ]);
 
-    // Start entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic),
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic),
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic),
-      }),
-    ]).start();
+        // Start entrance animations only after data is loaded
+        Animated.parallel([
+          Animated.spring(fadeAnim, {
+            toValue: 1,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: true,
+          }),
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      } catch (error) {
+        console.error("Failed to load initial data:", error);
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleSearch = () => {
@@ -170,9 +181,9 @@ const HomeScreen = () => {
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={[styles.greeting, { color: colors.neutral[600] }]}>
+            {/* <Text style={[styles.greeting, { color: colors.neutral[600] }]}>
               {STRINGS.WELCOME}
-            </Text>
+            </Text> */}
             <Text style={[styles.appName, { color: colors.text }]}>
               {STRINGS.APP_NAME}
             </Text>
@@ -215,9 +226,14 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </Animated.View>
 
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
         {/* Featured Carousel */}
         <Animated.View
@@ -341,11 +357,10 @@ const HomeScreen = () => {
             contentContainerStyle={styles.productsList}
           />
         </Animated.View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -380,6 +395,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.sm,
     paddingBottom: SPACING.md,
@@ -433,10 +453,12 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
   },
   scrollContent: {
+    paddingTop: 180,
     paddingBottom: SPACING.xl,
   },
   sectionContainer: {
     marginBottom: SPACING.lg,
+    paddingHorizontal: 0,
   },
   sectionHeader: {
     flexDirection: "row",

@@ -21,9 +21,9 @@ import Button from "../components/ui/Button";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const { login, isLoading, error, clearError } = useUserStore();
+  const { login, isLoading, error, clearError, user } = useUserStore();
   const { colors } = useTheme();
-
+  console.log(user);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -144,8 +144,8 @@ const LoginScreen = () => {
             <Button
               title={STRINGS.LOGIN}
               onPress={handleLogin}
-              isLoading={isLoading}
-              fullWidth
+              loading={isLoading}
+              size="medium"
               style={styles.loginButton}
             />
 
